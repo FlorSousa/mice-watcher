@@ -20,6 +20,7 @@ def parser_args():
     parser.add_argument(
         "--framerate", type=str, help="Frame rate video", default=30
     )
+    
     return parser.parse_args()
 
 def open_data(path,video_path,frame_rate):
@@ -52,6 +53,11 @@ def open_data(path,video_path,frame_rate):
         
 def save_project(path,data):
     import json
-    print(path)
+    import os
+    segmented_path =  path.split("\\")
+    path_to_file = "\\".join(segmented_path[:len(segmented_path)-1])
+    if not os.path.exists(path_to_file):
+        os.mkdir(path_to_file)
+      
     with open(path, "w") as outfile:
         json.dump(data,outfile)
