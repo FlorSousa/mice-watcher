@@ -1,2 +1,7 @@
 __pycache__/
 model/
+*.json
+build/
+*.pyd
+*.so
+*.c

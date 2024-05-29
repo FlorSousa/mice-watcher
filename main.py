@@ -2,33 +2,31 @@ import cv2 as cv
 from tqdm import tqdm
 from utils.parser import parser_args,open_data,save_project
 from ultralytics import YOLO
+from graphics import *
 
-def open_capture(video_path):
-    if video_path == None:
-        exit()
-    capture = cv.VideoCapture(video_path)
-    if not capture.isOpened():
-        print("Error: couldn't open video")
-        exit()
-    return capture
-                  
 if __name__ == "__main__":
     args = parser_args()
     project_data = open_data(args.path,args.video,args.framerate)
-    capture = open_capture(args.video)
+    capture = open_capture(project_data["video_path"])
     model = YOLO("model/yolov8n.pt")
     frameIndex = 0
     frame_rate_ms = int((1/project_data["frame_rate"])*1000)
     pbar = tqdm(total=int(capture.get(cv.CAP_PROP_FRAME_COUNT)))
-    
+    ret,background_frame = capture.read()
+    if not ret:
+        print("Error[]")
+        exit()
+    rois = selectionRoi(background_frame)
+    project_data["rois"]+=[roi.tolist() for roi in rois]
+
     while(capture.isOpened()):
         ret,frame = capture.read()
         #results = model(frame,stream=True)
-       
+
         if not ret:
             print("Error: Couldn't open frame %d" % (frameIndex))
             exit()
-
+        frame = drawRois(frame,project_data["rois"]) # type: ignore
         cv.imshow("Watching",frame)
         if cv.waitKey(frame_rate_ms) & 0xFF == ord("q"):
             break
@@ -37,6 +35,7 @@ if __name__ == "__main__":
     
     capture.release()
     cv.destroyAllWindows()
+    
     if args.path == None:
         save_project(f"{args.name}.json",project_data)
         exit()
